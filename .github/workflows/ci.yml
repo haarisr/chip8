@@ -1,0 +1,27 @@
+name: CI Build
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref_name }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: j178/prek-action@v2
+
+  build:
+    runs-on: ubuntu-latest
+    container: gcc:15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build
+        run: |
+          mkdir -p build
+          g++ -std=c++23 -Wall -Werror -Wextra -o build/chip8 src/main.cpp
