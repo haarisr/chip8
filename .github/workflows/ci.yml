@@ -24,4 +24,4 @@ jobs:
       - name: Build
         run: |
           mkdir -p build
-          g++ -std=c++23 -Wall -Werror -Wextra -o build/chip8 src/main.cpp
+          g++ -std=c++23 -Wall -Werror -Wextra -o build/chip8 src/main.cpp src/emulator.cpp
