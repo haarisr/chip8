@@ -1,0 +1,11 @@
+---
+BasedOnStyle: Google
+ColumnLimit: 100
+IndentWidth: 4
+Standard: c++23
+PointerAlignment: Left
+DerivePointerAlignment: false
+ReferenceAlignment: Pointer
+IncludeBlocks: Preserve
+SeparateDefinitionBlocks: Leave
+...
