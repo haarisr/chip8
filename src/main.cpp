@@ -1,3 +1,3 @@
-#include <print>
+#include "emulator.hpp"
 
-int main() { std::println("Hello World"); }
+int main() { chip8::Emulator emulator; }
