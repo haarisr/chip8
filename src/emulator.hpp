@@ -1,10 +1,16 @@
 #include <array>
 #include <cstdint>
+#include <functional>
+#include <string>
 #include <utility>
 
 namespace chip8 {
 
 static constexpr uint32_t kMemorySize = 4 * 1024;  // 4kB
+static constexpr uint32_t kStackSize = 16;
+static constexpr uint16_t kStartAddress = 0x200;
+static constexpr uint32_t kWidth = 64;
+static constexpr uint32_t kHeight = 32;
 
 enum class InstructionField {
     Opcode,      // first nibble
@@ -18,6 +24,9 @@ enum class InstructionField {
 class Emulator {
    public:
     Emulator();
+    bool loadRom(const std::string& path);
+    void execute();
+    void draw();
 
    private:
     uint16_t fetch();
@@ -25,9 +34,20 @@ class Emulator {
     template <InstructionField field>
     constexpr uint16_t decode(uint16_t opcode);
 
+    void op0(uint16_t opcode);
+    void op1(uint16_t opcode);
+    void op6(uint16_t opcode);
+    void op7(uint16_t opcode);
+    void opA(uint16_t opcode);
+    void opD(uint16_t opcode);
+
    private:
     uint16_t m_pc;
+    uint16_t m_index_register;
+    std::array<bool, kWidth * kHeight> m_display;
     std::array<uint8_t, kMemorySize> m_memory;
+    std::array<uint8_t, 16> m_registers;
+    std::array<std::function<void(uint16_t)>, 16> m_dispatch_table;
 };
 
 template <InstructionField field>
