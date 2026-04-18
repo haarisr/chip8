@@ -36,14 +36,23 @@ class Emulator {
 
     void op0(uint16_t opcode);
     void op1(uint16_t opcode);
+    void op2(uint16_t opcode);
+    void op3(uint16_t opcode);
+    void op4(uint16_t opcode);
+    void op5(uint16_t opcode);
     void op6(uint16_t opcode);
     void op7(uint16_t opcode);
+    void op8(uint16_t opcode);
+    void op9(uint16_t opcode);
     void opA(uint16_t opcode);
     void opD(uint16_t opcode);
+    void opF(uint16_t opcode);
 
    private:
     uint16_t m_pc;
     uint16_t m_index_register;
+    std::array<uint16_t, 16> m_stack;
+    uint8_t m_stack_ptr{0};
     std::array<bool, kWidth * kHeight> m_display;
     std::array<uint8_t, kMemorySize> m_memory;
     std::array<uint8_t, 16> m_registers;
