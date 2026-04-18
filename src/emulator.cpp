@@ -30,6 +30,20 @@ consteval std::array<uint8_t, kMemorySize> initializeMemory() {
     return memory;
 }
 
-Emulator::Emulator() { m_memory = initializeMemory(); }
+Emulator::Emulator() {
+    m_memory = initializeMemory();
+    static_assert(decode<InstructionField::Opcode>(0xA1EF) == 0xA);
+    static_assert(decode<InstructionField::RegisterX>(0xA1EF) == 0x1);
+    static_assert(decode<InstructionField::RegisterY>(0xA1EF) == 0xE);
+    static_assert(decode<InstructionField::Immediate4>(0xA1EF) == 0xF);
+    static_assert(decode<InstructionField::Immediate8>(0xA1EF) == 0xEF);
+    static_assert(decode<InstructionField::Address12>(0xA1EF) == 0x1EF);
+}
+
+uint16_t Emulator::fetch() {
+    uint16_t high = m_memory[m_pc++];
+    uint16_t low = m_memory[m_pc++];
+    return (high << 8) | low;
+}
 
 }  // namespace chip8
