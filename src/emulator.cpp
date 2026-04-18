@@ -43,10 +43,21 @@ Emulator::Emulator() {
 
     m_dispatch_table[0x0] = [this](uint16_t opcode) { op0(opcode); };
     m_dispatch_table[0x1] = [this](uint16_t opcode) { op1(opcode); };
+    m_dispatch_table[0x2] = [this](uint16_t opcode) { op2(opcode); };
+    m_dispatch_table[0x3] = [this](uint16_t opcode) { op3(opcode); };
+    m_dispatch_table[0x4] = [this](uint16_t opcode) { op4(opcode); };
+    m_dispatch_table[0x5] = [this](uint16_t opcode) { op5(opcode); };
     m_dispatch_table[0x6] = [this](uint16_t opcode) { op6(opcode); };
     m_dispatch_table[0x7] = [this](uint16_t opcode) { op7(opcode); };
+    m_dispatch_table[0x8] = [this](uint16_t opcode) { op8(opcode); };
+    m_dispatch_table[0x9] = [this](uint16_t opcode) { op9(opcode); };
     m_dispatch_table[0xA] = [this](uint16_t opcode) { opA(opcode); };
     m_dispatch_table[0xD] = [this](uint16_t opcode) { opD(opcode); };
+    m_dispatch_table[0xF] = [this](uint16_t opcode) { opF(opcode); };
+
+    m_dispatch_table[0xB] = [](uint16_t) {};
+    m_dispatch_table[0xC] = [](uint16_t) {};
+    m_dispatch_table[0xE] = [](uint16_t) {};
 }
 
 bool Emulator::loadRom(const std::string& path) {
@@ -85,17 +96,98 @@ void Emulator::draw() {
     }
 }
 
-void Emulator::op0(uint16_t) { m_display = {0}; }
+void Emulator::op0(uint16_t opcode) {
+    switch (opcode) {
+        case 0x00E0:
+            m_display = {0};
+            return;
+        case 0x00EE:
+            m_pc = m_stack[--m_stack_ptr];
+            return;
+    }
+}
 
 void Emulator::op1(uint16_t opcode) { m_pc = decode<InstructionField::Address12>(opcode); }
+
+void Emulator::op2(uint16_t opcode) {
+    m_stack[m_stack_ptr++] = m_pc;
+    m_pc = decode<InstructionField::Address12>(opcode);
+}
+
+void Emulator::op3(uint16_t opcode) {
+    const auto regx = m_registers[decode<InstructionField::RegisterX>(opcode)];
+    const auto imm8 = decode<InstructionField::Immediate8>(opcode);
+    if (regx == imm8) m_pc += 2;
+}
+
+void Emulator::op4(uint16_t opcode) {
+    const auto regx = m_registers[decode<InstructionField::RegisterX>(opcode)];
+    const auto imm8 = decode<InstructionField::Immediate8>(opcode);
+    if (regx != imm8) m_pc += 2;
+}
+
+void Emulator::op5(uint16_t opcode) {
+    const auto regx = m_registers[decode<InstructionField::RegisterX>(opcode)];
+    const auto regy = m_registers[decode<InstructionField::RegisterY>(opcode)];
+    if (regx == regy) m_pc += 2;
+}
 
 void Emulator::op6(uint16_t opcode) {
     m_registers[decode<InstructionField::RegisterX>(opcode)] =
         decode<InstructionField::Immediate8>(opcode);
 }
+
 void Emulator::op7(uint16_t opcode) {
     m_registers[decode<InstructionField::RegisterX>(opcode)] +=
         decode<InstructionField::Immediate8>(opcode);
+}
+
+void Emulator::op8(uint16_t opcode) {
+    // Make configurable for old ones
+    const auto alu_op = decode<InstructionField::Immediate4>(opcode);
+    auto& regx = m_registers[decode<InstructionField::RegisterX>(opcode)];
+    auto& regy = m_registers[decode<InstructionField::RegisterY>(opcode)];
+    switch (alu_op) {
+        case 0x0:
+            regx = regy;
+            return;
+        case 0x1:
+            regx |= regy;
+            return;
+        case 0x2:
+            regx &= regy;
+            return;
+        case 0x3:
+            regx ^= regy;
+            return;
+        case 0x4:
+            // need to overlfow here
+            regx += regy;
+            return;
+        case 0x5:
+            // need to overlfow here
+            regx -= regy;
+            return;
+        case 0x7:
+            // need to overlfow here
+            regx = regy - regx;
+            return;
+
+        case 0x6:
+            m_registers[0xF] = regx & 0x1;
+            regx >>= 1;
+            return;
+        case 0xE:
+            m_registers[0xF] = regx & 0x80;
+            regx <<= 1;
+            return;
+    }
+}
+
+void Emulator::op9(uint16_t opcode) {
+    const auto regx = m_registers[decode<InstructionField::RegisterX>(opcode)];
+    const auto regy = m_registers[decode<InstructionField::RegisterY>(opcode)];
+    if (regx != regy) m_pc += 2;
 }
 
 void Emulator::opA(uint16_t opcode) {
@@ -125,6 +217,36 @@ void Emulator::opD(uint16_t opcode) {
                 m_display[index] ^= 1;
             }
         }
+    }
+}
+
+void Emulator::opF(uint16_t opcode) {
+    // Make configurable for old ones
+    const auto imm8 = decode<InstructionField::Immediate8>(opcode);
+    const auto x = decode<InstructionField::RegisterX>(opcode);
+
+    switch (imm8) {
+        case 0x55:
+            for (uint8_t i = 0; i <= x; i++) {
+                m_memory[m_index_register + i] = m_registers[i];
+            }
+            return;
+        case 0x65:
+            for (uint8_t i = 0; i <= x; i++) {
+                m_registers[i] = m_memory[m_index_register + i];
+            }
+            return;
+        case 0x33: {
+            auto number = m_registers[x];
+            for (uint8_t i = 0; i <= 2; i++) {
+                m_memory[m_index_register + (2 - i)] = number % 10;
+                number = number / 10;
+            }
+        }
+            return;
+        case 0x1E:
+            m_index_register += m_registers[x];
+            return;
     }
 }
 
