@@ -27,6 +27,7 @@ class Emulator {
     Emulator();
     bool loadRom(const std::string& path);
     void execute();
+    void tick();
     void draw();
     std::span<bool> keys() { return m_keys; }
 
@@ -52,6 +53,8 @@ class Emulator {
     void opF(uint16_t opcode);
 
    private:
+    uint8_t m_delay_timer;
+    uint8_t m_sound_timer;
     uint16_t m_pc;
     uint16_t m_index_register;
     std::array<uint16_t, 16> m_stack;
