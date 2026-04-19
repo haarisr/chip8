@@ -10,6 +10,7 @@ namespace chip8 {
 static constexpr uint32_t kMemorySize = 4 * 1024;  // 4kB
 static constexpr uint32_t kStackSize = 16;
 static constexpr uint16_t kStartAddress = 0x200;
+static constexpr uint16_t kFontAddress = 0x50;
 static constexpr uint32_t kWidth = 64;
 static constexpr uint32_t kHeight = 32;
 

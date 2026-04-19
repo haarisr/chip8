@@ -7,7 +7,7 @@ namespace chip8 {
 
 consteval std::array<uint8_t, kMemorySize> initializeMemory() {
     std::array<uint8_t, kMemorySize> memory;
-    uint8_t fonts[] = {
+    std::array<uint8_t, 80> fonts = {
         0xF0, 0x90, 0x90, 0x90, 0xF0,  // 0
         0x20, 0x60, 0x20, 0x20, 0x70,  // 1
         0xF0, 0x10, 0xF0, 0x80, 0xF0,  // 2
@@ -25,9 +25,8 @@ consteval std::array<uint8_t, kMemorySize> initializeMemory() {
         0xF0, 0x80, 0xF0, 0x80, 0xF0,  // E
         0xF0, 0x80, 0xF0, 0x80, 0x80   // F};
     };
-    uint8_t start = 0x50;
-    for (const auto font : fonts) {
-        memory[start++] = font;
+    for (size_t i = 0; i < fonts.size(); i++) {
+        memory[kFontAddress + i] = fonts[i];
     }
     return memory;
 }
@@ -296,6 +295,9 @@ void Emulator::opF(uint16_t opcode) {
             m_pc -= 2;
             return;
         }
+        case 0x29:
+            m_index_register = kFontAddress + m_registers[x] * 5;
+            return;
     }
 }
 
