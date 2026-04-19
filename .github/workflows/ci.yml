@@ -24,4 +24,6 @@ jobs:
       - name: Build
         run: |
           mkdir -p build
-          g++ -std=c++23 -Wall -Werror -Wextra -o build/chip8 src/main.cpp src/emulator.cpp
+          apt-get update
+          apt-get install -y --no-install-recommends libsdl3-dev
+          g++ -std=c++23 -Wall -Werror -Wextra -o build/chip8 src/*.cpp -lSDL3
