@@ -53,11 +53,11 @@ Emulator::Emulator() {
     m_dispatch_table[0x9] = [this](uint16_t opcode) { op9(opcode); };
     m_dispatch_table[0xA] = [this](uint16_t opcode) { opA(opcode); };
     m_dispatch_table[0xD] = [this](uint16_t opcode) { opD(opcode); };
+    m_dispatch_table[0xE] = [this](uint16_t opcode) { opE(opcode); };
     m_dispatch_table[0xF] = [this](uint16_t opcode) { opF(opcode); };
 
     m_dispatch_table[0xB] = [](uint16_t) {};
     m_dispatch_table[0xC] = [](uint16_t) {};
-    m_dispatch_table[0xE] = [](uint16_t) {};
 }
 
 bool Emulator::loadRom(const std::string& path) {
@@ -228,6 +228,19 @@ void Emulator::opD(uint16_t opcode) {
                 m_display[index] ^= 1;
             }
         }
+    }
+}
+
+void Emulator::opE(uint16_t opcode) {
+    const auto imm8 = decode<InstructionField::Immediate8>(opcode);
+    const auto regx = m_registers[decode<InstructionField::RegisterX>(opcode)];
+    switch (imm8) {
+        case 0x9E:
+            if (m_keys[regx]) m_pc += 2;
+            return;
+        case 0xA1:
+            if (!m_keys[regx]) m_pc += 2;
+            return;
     }
 }
 
