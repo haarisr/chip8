@@ -160,27 +160,38 @@ void Emulator::op8(uint16_t opcode) {
         case 0x3:
             regx ^= regy;
             return;
-        case 0x4:
-            // need to overlfow here
-            regx += regy;
+        case 0x4: {
+            uint16_t sum = regx + regy;
+            regx = sum & 0xFF;
+            m_registers[0xF] = sum > 0xFF;
             return;
-        case 0x5:
-            // need to overlfow here
-            regx -= regy;
+        }
+        case 0x5: {
+            uint16_t diff = regx - regy;
+            bool result = regx >= regy;
+            regx = diff & 0xFF;
+            m_registers[0xF] = result;
             return;
-        case 0x7:
-            // need to overlfow here
-            regx = regy - regx;
+        }
+        case 0x7: {
+            uint16_t diff = regy - regx;
+            bool result = regy >= regx;
+            regx = diff & 0xFF;
+            m_registers[0xF] = result;
             return;
-
-        case 0x6:
-            m_registers[0xF] = regx & 0x1;
+        }
+        case 0x6: {
+            bool carry = regx & 0x1;
             regx >>= 1;
+            m_registers[0xF] = carry;
             return;
-        case 0xE:
-            m_registers[0xF] = regx & 0x80;
+        }
+        case 0xE: {
+            bool carry = regx & 0x80;
             regx <<= 1;
+            m_registers[0xF] = carry;
             return;
+        }
     }
 }
 
