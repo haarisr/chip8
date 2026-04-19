@@ -49,6 +49,8 @@ class Emulator {
     void op8(uint16_t opcode);
     void op9(uint16_t opcode);
     void opA(uint16_t opcode);
+    void opB(uint16_t opcode);
+    void opC(uint16_t opcode);
     void opD(uint16_t opcode);
     void opE(uint16_t opcode);
     void opF(uint16_t opcode);

@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <fstream>
 #include <print>
+#include <random>
 
 namespace chip8 {
 
@@ -51,12 +52,11 @@ Emulator::Emulator() {
     m_dispatch_table[0x8] = [this](uint16_t opcode) { op8(opcode); };
     m_dispatch_table[0x9] = [this](uint16_t opcode) { op9(opcode); };
     m_dispatch_table[0xA] = [this](uint16_t opcode) { opA(opcode); };
+    m_dispatch_table[0xB] = [this](uint16_t opcode) { opB(opcode); };
+    m_dispatch_table[0xC] = [this](uint16_t opcode) { opC(opcode); };
     m_dispatch_table[0xD] = [this](uint16_t opcode) { opD(opcode); };
     m_dispatch_table[0xE] = [this](uint16_t opcode) { opE(opcode); };
     m_dispatch_table[0xF] = [this](uint16_t opcode) { opF(opcode); };
-
-    m_dispatch_table[0xB] = [](uint16_t) {};
-    m_dispatch_table[0xC] = [](uint16_t) {};
 }
 
 bool Emulator::loadRom(const std::string& path) {
@@ -208,6 +208,19 @@ void Emulator::op9(uint16_t opcode) {
 void Emulator::opA(uint16_t opcode) {
     m_index_register = decode<InstructionField::Address12>(opcode);
 }
+
+void Emulator::opB(uint16_t opcode) {
+    m_pc = decode<InstructionField::Address12>(opcode) + m_registers[0x0];
+}
+
+void Emulator::opC(uint16_t opcode) {
+    auto& regx = m_registers[decode<InstructionField::RegisterX>(opcode)];
+    const auto imm8 = decode<InstructionField::Immediate8>(opcode);
+    static std::mt19937 engine(std::random_device{}());
+    static std::uniform_int_distribution<uint8_t> distrib(0, 255);
+    regx = imm8 & distrib(engine);
+}
+
 void Emulator::opD(uint16_t opcode) {
     uint8_t x_coord = m_registers[decode<InstructionField::RegisterX>(opcode)] & (kWidth - 1);
     uint8_t y_coord = m_registers[decode<InstructionField::RegisterY>(opcode)] & (kHeight - 1);
