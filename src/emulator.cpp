@@ -86,6 +86,11 @@ void Emulator::execute() {
     m_dispatch_table[decode<InstructionField::Opcode>(opcode)](opcode);
 }
 
+void Emulator::tick() {
+    if (m_delay_timer > 0) m_delay_timer--;
+    if (m_sound_timer > 0) m_sound_timer--;
+}
+
 void Emulator::draw() {
     std::println("\x1B[2J\x1B[H");
     for (size_t y = 0; y < kHeight; y++) {
@@ -271,6 +276,26 @@ void Emulator::opF(uint16_t opcode) {
         case 0x1E:
             m_index_register += m_registers[x];
             return;
+        case 0x07:
+            m_registers[x] = m_delay_timer;
+            return;
+        case 0x15:
+            m_delay_timer = m_registers[x];
+            return;
+        case 0x18:
+            m_sound_timer = m_registers[x];
+            return;
+
+        case 0x0A: {
+            for (uint8_t i = 0; i < m_keys.size(); i++) {
+                if (m_keys[i]) {
+                    m_registers[x] = i;
+                    return;
+                }
+            }
+            m_pc -= 2;
+            return;
+        }
     }
 }
 

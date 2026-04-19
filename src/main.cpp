@@ -27,6 +27,7 @@ int main(int argc, char* argv[]) {
     auto window = std::move(*window_opt);
     while (window.isRunning()) {
         window.pollEvents(emulator.keys());
+        emulator.tick();
         emulator.execute();
         emulator.draw();
     }
